@@ -102,7 +102,7 @@ if ploterr == True:
 ## DO NOT CHANGE!
 print
 print('Setting up plot...')
-ratio = 1.065
+ratio = 1.11#1.065
 xdim = 8
 ydim = xdim*ratio
 plt.figure(figsize=(xdim,ydim))
