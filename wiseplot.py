@@ -11,8 +11,8 @@ from numpy import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
 #rc('text', usetex=True)
-#rc('font',**{'family':'STIXGeneral', 'size':18})
-rc('font',**{'family':'serif','serif':['serif'],'size':20})
+rc('font',**{'family':'STIXGeneral', 'size':18})
+#rc('font',**{'family':'serif','serif':['serif'],'size':20})
 from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage,AnnotationBbox
 from matplotlib.cbook import get_sample_data
 from astropy.io import ascii
@@ -40,10 +40,14 @@ def wise2pix(x,y):
 # Defaults: ['W1','W2','W3'] and ['W1err','W2err','W3err']
 wise1,wise2,wise3 = ['w1mpro','w2mpro','w3mpro']
 werr1,werr2,werr3 = ['w1sigmpro','w2sigmpro','w3sigmpro']
+namecol = 'Name'
 
 # Options
 ploterr = True # Toggle for plotting errors
 print('Plotting of errors is set to... %s' % ploterr)
+
+plotunique = True #Toggle for plotting each source with a unique marker
+print('Plotting of sources as unique is set to... %s' % plotunique)
 
 # For labelling figure output
 if ploterr == True:
@@ -133,7 +137,7 @@ plt.ylim(0,1)
 # Incorporate the background image
 sfig = 'wright2010data.png'
 arr_lena = plt.imread(sfig)
-imagebox = OffsetImage(arr_lena, zoom=0.27)
+imagebox = OffsetImage(arr_lena, zoom=0.27, alpha =0.8)
 ab = AnnotationBbox(imagebox, [0.5,0.5],
                     xybox=(0., 0.),
                     xycoords='data',
@@ -147,18 +151,39 @@ ax.add_artist(ab)
 print('Plotting data...')
 (x,y) = wise2pix(w2-w3,w1-w2)
 
+#get names!
+
 # Scatter plot
 # Change plotting parameters of data here if needed
-plt.scatter(x,y,facecolor='r',marker='o',s=10,zorder=101,alpha=1.0,linewidth=0.5)
+if not plotunique:
+    plt.scatter(x,y,facecolor='r',marker='o',s=10,zorder=101,alpha=1.0,linewidth=0.5)
 
-# Error plot
-if ploterr == True:
-    w12e = sqrt(w1e**2+w2e**2)
-    w23e = sqrt(w3e**2+w2e**2)
-    (xe,ye) = wise2pix((w2-w3)+w23e,(w1-w2)+w12e)
-    xe1 = xe-x
-    ye1 = ye-y
-    plt.errorbar(x,y,xerr=xe1,yerr=ye1,fmt='None',zorder=100,ecolor='k')
+    # Error plot
+    if ploterr == True:
+        w12e = sqrt(w1e**2+w2e**2)
+        w23e = sqrt(w3e**2+w2e**2)
+        (xe,ye) = wise2pix((w2-w3)+w23e,(w1-w2)+w12e)
+        xe1 = xe-x
+        ye1 = ye-y
+        plt.errorbar(x,y,xerr=xe1,yerr=ye1,fmt='None',zorder=100,ecolor='k')
+elif plotunique:
+    #loop through names
+    markers = ['o', 'x', 'd', '*', 'p', '1', 'p', 'P', '+']
+    colours = ['r', 'b', 'g', 'k', 'rebeccapurple', 'orange']
+    for src_idx in range(len(d[namecol])):
+        src_name = d[namecol][src_idx]
+        plt.scatter(x[src_idx],y[src_idx],facecolor=colours[src_idx],marker=markers[src_idx],\
+            s=40,zorder=101,alpha=1.0,linewidth=0.5, label = src_name)
+
+    # Error plot
+    if ploterr == True:
+        w12e = sqrt(w1e**2+w2e**2)
+        w23e = sqrt(w3e**2+w2e**2)
+        (xe,ye) = wise2pix((w2-w3)+w23e,(w1-w2)+w12e)
+        xe1 = xe-x
+        ye1 = ye-y
+        plt.errorbar(x,y,xerr=xe1,yerr=ye1,fmt='None',zorder=100,ecolor='k')
+    plt.legend(fontsize=12)
 
 # Labels
 plt.xlabel('[ 4.6 ] - [ 12 ] in mag')
